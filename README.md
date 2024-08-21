@@ -5,18 +5,21 @@
 웹 상의 어디에서든 이미지에 좋아요!를 누르고 한 곳에 모아 볼 수 있게 하는 토이 프로젝트  
 프론트엔드 + 백엔드 + 브라우저 익스텐션으로 구성
 
-### Dev
+### How to run
 ```nushell
 # nushell
+
+# Dev
 cd joayo-frontend; pnpm run dev
 cd joayo-backend; cargo run
-```
 
-### Build
-```nushell
-# nushell
+# Build
 bazel run //joayo-frontend:build
 bazel build //joayo-backend
+
+# Run
+bazel run //joayo-frontend:preview
+bazel run //joayo-backend
 ```
 
 
