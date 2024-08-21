@@ -5,6 +5,21 @@
 웹 상의 어디에서든 이미지에 좋아요!를 누르고 한 곳에 모아 볼 수 있게 하는 토이 프로젝트  
 프론트엔드 + 백엔드 + 브라우저 익스텐션으로 구성
 
+### Dev
+```nushell
+# nushell
+cd joayo-front; pnpm run dev
+cd joayo-backend; cargo run
+```
+
+### Build
+```nushell
+# nushell
+bazel build //joayo-frontend
+bazel build //joayo-backend
+```
+
+
 ## Big Dream
 ![image](https://github.com/user-attachments/assets/aba7d623-103d-45b7-87f5-0fb3ed681cec)
 
@@ -12,3 +27,4 @@
 * Svelte 익히기
 * Rust와 백엔드 개발 경험 쌓기
 * Bazel을 통한 모노레포와 CI/CD 체험하기
+* Vim만으로 개발해보기
