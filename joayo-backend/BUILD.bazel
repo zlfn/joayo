@@ -1,8 +1,12 @@
+exports_files(["Cargo.toml"])
+exports_files(["Cargo.lock"])
 load("@rules_rust//rust:defs.bzl", "rust_binary")
+load("@rules_rust//crate_universe:defs.bzl", "crates_repository")
+load("@crates//:defs.bzl", "all_crate_deps")
 
 rust_binary(
     name = "joayo-backend",
     srcs = ["src/main.rs"],
-    deps = [],
+	deps = all_crate_deps(),
     edition = "2021"
 )

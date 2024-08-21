@@ -8,14 +8,14 @@
 ### Dev
 ```nushell
 # nushell
-cd joayo-front; pnpm run dev
+cd joayo-frontend; pnpm run dev
 cd joayo-backend; cargo run
 ```
 
 ### Build
 ```nushell
 # nushell
-bazel build //joayo-frontend
+bazel run //joayo-frontend:build
 bazel build //joayo-backend
 ```
 

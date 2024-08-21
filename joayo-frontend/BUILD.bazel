@@ -1,19 +1,10 @@
+load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@npm//joayo-frontend:vite/package_json.bzl", vite_bin = "bin")
 
 npm_link_all_packages(name = "node_modules")
 
-filegroup(
-	name = "project",
-	srcs = glob([
-		"src/**/*.ts",
-		"src/**/*.svelte",
-		"src/**/*.html",
-	]),
-)
-
-SRCS = [
-	"project",
+SRCS = glob(["src/**/*"]) + [
 	"//joayo-frontend/static",
 	"svelte.config.js",
 	"vite.config.ts",
@@ -21,21 +12,30 @@ SRCS = [
 	"package.json",
 ]
 
-BUILD_DEPS = [":node_modules/" + d for d in [
-	"@sveltejs/adapter-auto",
-	"@sveltejs/kit",
-	"@sveltejs/vite-plugin-svelte",
-	"svelte",
-	"svelte-check",
-	"typescript",
-	"vite",
-]]
-
-vite_bin.vite(
-	name = "joayo-frontend",
-	srcs = SRCS + BUILD_DEPS,
-	args = ["build"],
+# build file is in bazel-bin/joayo-frontend/build_/build.runfiles/_main/joayo-frontend/.svelte-kit
+vite_bin.vite_binary(
+	name = "build",
 	chdir = package_name(),
-	out_dirs = ["dist"],
-	visibility = ["//visibility:public"],
+	args = ["build"],
+	data = SRCS + [":node_modules"],
+)
+
+vite_bin.vite_binary(
+	name = "dev",
+	chdir = package_name(),
+	args = ["dev"],
+	data = SRCS + [":node_modules"]
+)
+
+vite_bin.vite_binary(
+	name = "preview",
+	chdir = package_name(),
+	args = ["dev"],
+	data = SRCS + [":node_modules"]
+)
+
+vite_bin.vite_binary(
+	name = "vite",
+	chdir = package_name(),
+	data = ["vite.config.ts"],
 )
