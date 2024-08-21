@@ -1,0 +1,8 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary")
+
+rust_binary(
+    name = "joayo-backend",
+    srcs = ["src/main.rs"],
+    deps = [],
+    edition = "2021"
+)
