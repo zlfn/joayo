@@ -1,12 +1,13 @@
-exports_files(["Cargo.toml"])
-exports_files(["Cargo.lock"])
-load("@rules_rust//rust:defs.bzl", "rust_binary")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
 load("@rules_rust//crate_universe:defs.bzl", "crates_repository")
 load("@crates//:defs.bzl", "all_crate_deps")
 
+SRCS = glob(["src/*", "src/*/*.rs"])
+TESTS = glob(["api/tests/**"])
+
 rust_binary(
     name = "joayo-backend",
-    srcs = ["src/main.rs"],
-	deps = all_crate_deps(),
+	srcs = SRCS,
+	deps =  all_crate_deps() + ["//joayo-backend/api"],
     edition = "2021"
 )

@@ -37,7 +37,7 @@ bazel_dep(name = "rules_rust", version = "0.47.1")
 
 # Rust toolchain
 RUST_EDITION = "2021"
-RUST_VERSION = "1.79.0"
+RUST_VERSION = "1.78.0"
 
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust.toolchain(
@@ -53,6 +53,9 @@ crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
 crate.from_cargo(
 	name = "crates",
 	cargo_lockfile = "//joayo-backend:Cargo.lock",
-	manifests = ["//joayo-backend:Cargo.toml"],
+	manifests = [
+		"//joayo-backend:Cargo.toml",
+		"//joayo-backend:api/Cargo.toml",
+	],
 )
 use_repo(crate, "crates")

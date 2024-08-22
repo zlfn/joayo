@@ -17,6 +17,9 @@ cd joayo-backend; cargo run
 bazel run //joayo-frontend:build
 bazel build //joayo-backend
 
+# Test
+bazel test //joayo-backend/api:test
+
 # Run
 bazel run //joayo-frontend:preview
 bazel run //joayo-backend

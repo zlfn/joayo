@@ -1,0 +1,22 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
+load("@rules_rust//crate_universe:defs.bzl", "crates_repository")
+load("@crates//:defs.bzl", "all_crate_deps")
+
+SRCS = glob(["src/*", "src/*/*.rs"])
+TESTS = glob(["tests/**"])
+
+rust_library(
+	name = "api",
+	srcs = SRCS,
+	deps = all_crate_deps(),
+	edition = "2021",
+	visibility = ["//joayo-backend:__pkg__"]
+)
+
+rust_test(
+	name = "test",
+	srcs = TESTS,
+	deps = all_crate_deps() + [":api"],
+	edition = "2021",
+	visibility = ["//joayo-backend:__pkg__"]
+)
