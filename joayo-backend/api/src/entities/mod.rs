@@ -3,4 +3,5 @@
 pub mod prelude;
 
 pub mod password_identity;
+pub mod session;
 pub mod user;

@@ -14,11 +14,19 @@ pub struct Model {
 pub enum Relation {
     #[sea_orm(has_one = "super::password_identity::Entity")]
     PasswordIdentity,
+    #[sea_orm(has_many = "super::session::Entity")]
+    Session,
 }
 
 impl Related<super::password_identity::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::PasswordIdentity.def()
+    }
+}
+
+impl Related<super::session::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Session.def()
     }
 }
 
