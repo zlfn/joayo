@@ -10,7 +10,6 @@ enum PasswordIdentity {
     Table,
     UserId,
     PasswordHash,
-    Salt,
 }
 
 #[async_trait::async_trait]
@@ -27,7 +26,6 @@ impl MigrationTrait for Migration {
                         .primary_key()
                     )
                     .col(string(PasswordIdentity::PasswordHash))
-                    .col(string(PasswordIdentity::Salt))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk-password_identity-user_id")

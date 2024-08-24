@@ -3,7 +3,6 @@ load("@rules_rust//crate_universe:defs.bzl", "crates_repository")
 load("@crates//:defs.bzl", "all_crate_deps")
 
 SRCS = glob(["src/*", "src/*/*.rs"])
-TESTS = glob(["api/tests/**"])
 
 rust_binary(
     name = "joayo-backend",

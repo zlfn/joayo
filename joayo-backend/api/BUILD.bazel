@@ -9,6 +9,7 @@ rust_library(
 	name = "api",
 	srcs = SRCS,
 	deps = all_crate_deps(),
+	proc_macro_deps = ["//joayo-backend/api/api_derive"],
 	edition = "2021",
 	visibility = ["//joayo-backend:__pkg__"]
 )

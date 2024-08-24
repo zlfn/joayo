@@ -1,0 +1,13 @@
+load("@rules_rust//rust:defs.bzl", "rust_proc_macro")
+load("@rules_rust//crate_universe:defs.bzl", "crates_repository")
+load("@crates//:defs.bzl", "all_crate_deps")
+
+SRCS = glob(["src/*", "src/*/*.rs"])
+
+rust_proc_macro(
+	name = "api_derive",
+	srcs = SRCS,
+	deps = all_crate_deps(),
+	edition = "2021",
+	visibility = ["//joayo-backend/api:__pkg__"]
+)
