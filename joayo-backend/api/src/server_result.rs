@@ -3,7 +3,6 @@ use axum_macros::FromRequest;
 use serde::Serialize;
 use tracing::warn;
 
-
 #[derive(Serialize, Clone)]
 #[serde(tag="type", content="data")]
 pub enum ServerResult<T, E> 

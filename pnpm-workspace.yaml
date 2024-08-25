@@ -1,3 +1,4 @@
 packages:
   - 'joayo-frontend'
   - 'joayo-extension'
+  - 'joayo-typespec'
