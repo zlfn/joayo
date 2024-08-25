@@ -1,15 +1,20 @@
+use std::time::Duration;
+
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
-use axum::{extract::State, Json, http::StatusCode};
+use axum::{extract::State, http::StatusCode};
 use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::CookieJar;
 use chrono::{Utc, TimeDelta};
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 use sea_orm::prelude::*;
 use sea_orm::{ActiveValue, ColumnTrait, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
+use tokio::time;
 use tracing::{error, warn};
 use uuid::Uuid;
 
-use crate::server_result::{ToStatusCode, ServerResult};
+use crate::server_result::{ToStatusCode, ServerResult, Json};
 use crate::entities::{prelude::*, *};
 
 #[derive(Deserialize)]
@@ -20,16 +25,14 @@ pub struct GetSessionRequest {
 
 #[derive(Serialize)]
 pub enum GetSessionError {
-    NoEmail,
-    WrongPassword,
+    WrongIdentity,
     InternalServerError,
 }
 
 impl ToStatusCode for GetSessionError {
     fn to_status_code(&self) -> StatusCode {
         match self {
-            Self::NoEmail => StatusCode::FORBIDDEN,
-            Self::WrongPassword => StatusCode::FORBIDDEN,
+            Self::WrongIdentity => StatusCode::FORBIDDEN,
             Self::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -39,7 +42,7 @@ impl ToStatusCode for GetSessionError {
 pub async fn get_session(
     state: State<crate::AppState>,
     jar: CookieJar,
-    Json(payload): Json<GetSessionRequest>
+    Json(payload): Json<GetSessionRequest>,
 ) -> (CookieJar, ServerResult<(), GetSessionError>) {
 
     let user = User::find()
@@ -49,8 +52,16 @@ pub async fn get_session(
 
     let user: user::Model = match user {
         Ok(None) => {
+
+            //Delay to defense blind attack
+            let mut rng = {
+                let rng = rand::thread_rng();
+                StdRng::from_rng(rng).unwrap()
+            };
+            time::sleep(Duration::from_secs_f64(rng.gen_range(0.5..2.0))).await;
+
             warn!("Unregistered Email requested: {}", payload.email);
-            return (jar, ServerResult::Error(GetSessionError::NoEmail));
+            return (jar, ServerResult::Error(GetSessionError::WrongIdentity));
         },
         Err(err) => {
             error!("{}", err);
@@ -89,7 +100,7 @@ pub async fn get_session(
 
     if Argon2::default().verify_password(password, &parsed_hash).is_err() {
         warn!("Wrong password requested: {}", payload.email);
-        return (jar, ServerResult::Error(GetSessionError::WrongPassword));
+        return (jar, ServerResult::Error(GetSessionError::WrongIdentity));
     }
 
     let session_id = Uuid::now_v7();

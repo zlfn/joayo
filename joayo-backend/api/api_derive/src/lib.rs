@@ -4,12 +4,12 @@ use proc_macro::TokenStream;
 use quote::quote;
 
 #[proc_macro_derive(ToStatusCode, attributes(status_code))]
-pub fn to_status(input: TokenStream) -> TokenStream {
+pub fn to_status_code(input: TokenStream) -> TokenStream {
     let item = syn::parse(input).unwrap();
-    impl_to_status_macro(&item)
+    impl_to_status_code_macro(&item)
 }
 
-fn impl_to_status_macro(item: &syn::DeriveInput) -> TokenStream {
+fn impl_to_status_code_macro(item: &syn::DeriveInput) -> TokenStream {
     let attr = item.attrs.iter().filter(
         |a| a.path.segments.len() == 1 && a.path.segments[0].ident == "status_code"
     ).nth(0).expect("status_code required to derive ToStatusCode");

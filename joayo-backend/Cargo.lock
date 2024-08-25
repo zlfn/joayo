@@ -134,11 +134,14 @@ dependencies = [
  "argon2",
  "axum",
  "axum-extra",
+ "axum-macros",
  "chrono",
+ "rand",
  "sea-orm",
  "sea-orm-migration",
  "serde",
  "serde_json",
+ "thiserror",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -297,6 +300,18 @@ dependencies = [
  "tower-layer",
  "tower-service",
  "tracing",
+]
+
+[[package]]
+name = "axum-macros"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "00c055ee2d014ae5981ce1016374e8213682aa14d9bf40e48ab48b5f3ef20eaa"
+dependencies = [
+ "heck 0.4.1",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.75",
 ]
 
 [[package]]

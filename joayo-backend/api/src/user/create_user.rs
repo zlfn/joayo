@@ -1,13 +1,18 @@
+use std::time::Duration;
+
 use api_derive::ToStatusCode;
 use argon2::{password_hash::{rand_core::OsRng, PasswordHasher, SaltString}, Argon2};
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{extract::State, http::StatusCode};
+use rand::{rngs::StdRng, Rng, SeedableRng};
 use sea_orm::{ActiveModelTrait, ActiveValue, ColumnTrait, DbErr, EntityTrait, QueryFilter, TransactionTrait};
 use serde::{Deserialize, Serialize};
+use tokio::time;
 use tracing::{error, warn};
 use uuid::Uuid;
 
+
 use crate::entities::{prelude::*, *};
-use crate::server_result::{ServerResult, ToStatusCode};
+use crate::server_result::{ServerResult, ToStatusCode, Json};
 
 #[derive(Deserialize)]
 pub struct CreateUserRequest {
@@ -30,8 +35,8 @@ impl ToStatusCode for CreateUserError {
     fn to_status_code(&self) -> StatusCode {
         match self {
             Self::EmailExist => return StatusCode::CONFLICT,
-            Self::BadPassword => return StatusCode::BAD_REQUEST,
-            Self::InternalServerError => return StatusCode::INTERNAL_SERVER_ERROR
+            Self::BadPassword => return StatusCode::UNPROCESSABLE_ENTITY,
+            Self::InternalServerError => return StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }
