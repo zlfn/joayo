@@ -5,6 +5,19 @@
 웹 상의 어디에서든 이미지에 좋아요!를 누르고 한 곳에 모아 볼 수 있게 하는 토이 프로젝트  
 프론트엔드 + 백엔드 + 브라우저 익스텐션으로 구성
 
+### Big Dream (Dif from pinterest)
+* 강력한 확장 프로그램과 웹 프론트엔드 연계
+  - 이미지의 레퍼런스로부터 원본 이미지 로딩
+  - 고정 이미지 url이 없는 이미지나 로그인이 필요한 이미지로부터 JOAYO 생성
+  - 사이트 내부의 액션으로 자동 JOAYO 생성
+  - 정규표현식을 이용한 커스텀 사이트 지원
+* 셀프 호스트 가능 (Pinry와 유사)
+* 최대한 다양한 플랫폼의 공식 지원
+  - Chrome, Firefox, Safari (via WXT)
+  - 애플 단축키
+  - 안드로이드 애플리케이션
+
+
 ### How to run
 ```nushell
 # nushell
@@ -26,11 +39,5 @@ bazel run //joayo-backend
 ```
 
 
-## Big Dream
+## Tech Stech
 ![image](https://github.com/user-attachments/assets/aba7d623-103d-45b7-87f5-0fb3ed681cec)
-
-**프로젝트 목표**
-* Svelte 익히기
-* Rust와 백엔드 개발 경험 쌓기
-* Bazel을 통한 모노레포와 CI/CD 체험하기
-* Vim만으로 개발해보기
