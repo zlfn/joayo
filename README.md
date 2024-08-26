@@ -40,4 +40,5 @@ bazel run //joayo-backend
 
 
 ## Tech Stack
-![image](https://github.com/user-attachments/assets/aba7d623-103d-45b7-87f5-0fb3ed681cec)
+![joayo drawio(2)](https://github.com/user-attachments/assets/fa9c9eef-1982-4bf7-9155-9ab1cffa942c)
+
