@@ -39,5 +39,5 @@ bazel run //joayo-backend
 ```
 
 
-## Tech Stech
+## Tech Stack
 ![image](https://github.com/user-attachments/assets/aba7d623-103d-45b7-87f5-0fb3ed681cec)
