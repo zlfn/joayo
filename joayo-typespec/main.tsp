@@ -5,6 +5,7 @@ import "@typespec/openapi3";
 
 import "./src/create_user.tsp";
 import "./src/get_session.tsp";
+import "./src/check_session.tsp";
 
 using TypeSpec.Http;
 using TypeSpec.OpenAPI;
@@ -21,7 +22,7 @@ using TypeSpec.OpenAPI;
 
 	### 기본적인 응답형태
 	모든 응답은 기본적으로 아래와 같은 형태로 주어집니다.
-	```js
+	```ts
 	{
 	    "type": "Ok" | "Error",
 	    "data": Object | null | string
@@ -34,7 +35,7 @@ using TypeSpec.OpenAPI;
 
 	### JSON 에러
 	서버가 JSON의 파싱에 실패했을 경우, 아래와 같은 응답이 주어집니다.
-	```js
+	```ts
 	{
 	    "type": "Error",
 	    "data": JsonErrorType as string

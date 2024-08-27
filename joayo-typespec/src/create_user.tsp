@@ -3,6 +3,7 @@ using TypeSpec.Http;
 
 namespace Joayo;
 
+@doc("유저 생성 요청데이터입니다.")
 model CreateUserRequest {
 	@doc("유효한 이메일 주소입니다.")
 	email: string;
