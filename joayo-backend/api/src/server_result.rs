@@ -54,7 +54,7 @@ pub enum JsonError {
 
 impl From<JsonRejection> for JsonError {
     fn from(rejection: JsonRejection) -> Self {
-        warn!("{}: {}", rejection.status(), rejection.body_text());
+        warn!("Invalid JSON requested: {}", rejection.body_text());
         match rejection {
             JsonRejection::JsonSyntaxError(_) => JsonError::JsonSyntaxError,
             JsonRejection::JsonDataError(_) => JsonError::JsonDataError,

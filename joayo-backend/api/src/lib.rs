@@ -38,6 +38,7 @@ pub async fn start() {
     let app = Router::new()
         .route("/", get(root))
         .route("/register", post(user::create_user))
+        .route("/login", get(user::check_session))
         .route("/login", post(user::get_session))
         .with_state(state);
 
