@@ -67,7 +67,7 @@ pub async fn create_user(
 
     let transaction = &state.db.transaction::<_, _, DbErr>(|txn| {
         Box::pin(async move {
-            let uuid = Uuid::new_v4();
+            let uuid = Uuid::now_v7();
             user::ActiveModel {
                 user_id: ActiveValue::Set(uuid),
                 email: ActiveValue::Set(payload.email.clone()),

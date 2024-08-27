@@ -103,7 +103,7 @@ pub async fn get_session(
         return (jar, ServerResult::Error(GetSessionError::WrongIdentity));
     }
 
-    let session_id = Uuid::now_v7();
+    let session_id = Uuid::new_v4();
 
     let session = session::ActiveModel {
         user_id: ActiveValue::set(user.user_id),

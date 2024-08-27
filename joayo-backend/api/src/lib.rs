@@ -1,9 +1,12 @@
+use std::time::Duration;
+
 use axum::{routing::{get, post}, Router};
 use migration::Migrator;
-use sea_orm::{Database, DatabaseConnection};
+use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use sea_orm_migration::MigratorTrait;
+use tokio::{select, sync::watch::Receiver};
+use tower_http::timeout::TimeoutLayer;
 use tracing::info;
-use tracing_subscriber::{filter, prelude::*, layer::SubscriberExt};
 
 pub mod migration;
 pub mod entities;
@@ -15,16 +18,11 @@ pub struct AppState {
     db: DatabaseConnection,
 }
 
-#[tokio::main]
-pub async fn start() {
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::fmt::layer().pretty()
-            .with_filter(filter::LevelFilter::WARN)
-        )
-        .init();
+pub async fn axum_start(mut shutdown_rx: Receiver<()>) {
 
-    let db: DatabaseConnection = Database::connect("postgres://joayo:joayo@0.0.0.0/joayo")
+    let mut opt = ConnectOptions::new("postgres://joayo:joayo@0.0.0.0/joayo".to_owned());
+    opt.sqlx_logging_level(log::LevelFilter::Debug);
+    let db: DatabaseConnection = Database::connect(opt)
         .await
         .expect("Failed to connect database");
 
@@ -33,17 +31,32 @@ pub async fn start() {
     Migrator::up(&db, None).await.unwrap();
     //Migrator::down(&db, None).await.unwrap();
 
-    let state = AppState { db };
+    let state = AppState { db: db.clone() };
 
     let app = Router::new()
         .route("/", get(root))
         .route("/register", post(user::create_user))
         .route("/login", get(user::check_session))
         .route("/login", post(user::get_session))
+        .layer((
+            TimeoutLayer::new(Duration::from_secs(30)),
+        ))
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:7878").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+
+    axum::serve(listener, app)
+        .with_graceful_shutdown(async move {
+            select! {
+                _ = shutdown_rx.changed() => {
+                    info!("Shutdown Axum");
+                    db.close().await.unwrap();
+                    info!("Database connection closed.");
+                }
+            }
+        })
+        .await
+        .unwrap();
 }
 
 
