@@ -155,7 +155,7 @@ paths:
                       - $ref: '#/components/schemas/CheckSessionData'
                     description: 요청한 데이터입니다.
         '401':
-          description: '`session_id` 쿠키를 찾지 못했거나, 쿠키가 있으나 서버에서 발급한 기록이 없습니다.'
+          description: '`session_id` 쿠키가 없습니다.'
           content:
             application/json:
               schema:
@@ -175,7 +175,7 @@ paths:
                       - Unauthorized
                     description: 오류의 유형입니다.
         '403':
-          description: 세션이 만료되었습니다.
+          description: 세션이 만료되었거나 `session_id`가 유효하지 않습니다.
           content:
             application/json:
               schema:
@@ -192,7 +192,7 @@ paths:
                   data:
                     type: string
                     enum:
-                      - SessionExpired
+                      - SessionInvalid
                     description: 오류의 유형입니다.
         '500':
           description: 내부 서버 오류입니다.
@@ -328,7 +328,7 @@ components:
       type: string
       enum:
         - Unauthorized
-        - SessionExpired
+        - SessionInvalid
         - InternalServerError
       description: 세션 확인 에러코드입니다.
     CreateUserError:

@@ -12,7 +12,7 @@ model CheckSessionData {
 @doc("세션 확인 에러코드입니다.")
 enum CheckSessionError {
 	Unauthorized: "Unauthorized",
-	SessionExpired: "SessionExpired",
+	SessionInvalid: "SessionInvalid",
 	...ServerError,
 }
 
@@ -25,7 +25,7 @@ model CheckSessionResponse {
 }
 
 /**
-`session_id` 쿠키를 찾지 못했거나, 쿠키가 있으나 서버에서 발급한 기록이 없습니다.
+`session_id` 쿠키가 없습니다.
 */
 model UnauthorizedError {
 	@statusCode statusCode: 401,
@@ -33,11 +33,11 @@ model UnauthorizedError {
 }
 
 /**
-세션이 만료되었습니다.
+세션이 만료되었거나 `session_id`가 유효하지 않습니다.
 */
-model SessionExpiredError {
+model SessionInvalidError {
 	@statusCode statusCode: 403,
-	@body body: ServerErrorResult<CheckSessionError.SessionExpired>
+	@body body: ServerErrorResult<CheckSessionError.SessionInvalid>
 }
 
 /**
@@ -50,4 +50,4 @@ model SessionExpiredError {
 @useAuth(ApiKeyAuth<ApiKeyLocation.cookie, "session_id">)
 @get
 op checkSession(): CheckSessionResponse
-| UnauthorizedError | SessionExpiredError | InternalServerError;
+| UnauthorizedError | SessionInvalidError | InternalServerError;

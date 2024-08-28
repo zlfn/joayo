@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use axum::{routing::{get, post}, Router};
+use axum::{routing::{delete, get, post, put}, Router};
 use migration::Migrator;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use sea_orm_migration::MigratorTrait;
@@ -11,6 +11,7 @@ use tracing::info;
 pub mod migration;
 pub mod entities;
 pub mod user;
+pub mod common;
 pub mod server_result;
 
 #[derive(Clone)]
@@ -36,8 +37,10 @@ pub async fn axum_start(mut shutdown_rx: Receiver<()>) {
     let app = Router::new()
         .route("/", get(root))
         .route("/register", post(user::create_user))
+        .route("/password", put(user::change_password))
         .route("/login", get(user::check_session))
         .route("/login", post(user::get_session))
+        .route("/login", delete(user::delete_session))
         .layer((
             TimeoutLayer::new(Duration::from_secs(30)),
         ))
@@ -49,7 +52,7 @@ pub async fn axum_start(mut shutdown_rx: Receiver<()>) {
         .with_graceful_shutdown(async move {
             select! {
                 _ = shutdown_rx.changed() => {
-                    info!("Shutdown Axum");
+                    info!("Shutting down Axum");
                     db.close().await.unwrap();
                     info!("Database connection closed.");
                 }

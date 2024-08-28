@@ -45,6 +45,14 @@ pub async fn get_session(
     Json(payload): Json<GetSessionRequest>,
 ) -> (CookieJar, ServerResult<(), GetSessionError>) {
 
+    //Delay to defense blind attack
+    let mut rng = {
+        let rng = rand::thread_rng();
+        StdRng::from_rng(rng).unwrap()
+    };
+
+    time::sleep(Duration::from_secs_f64(rng.gen_range(0.2..1.2))).await;
+            
     let user = User::find()
         .filter(user::Column::Email.eq(&payload.email))
         .one(&state.db)
@@ -52,13 +60,7 @@ pub async fn get_session(
 
     let user: user::Model = match user {
         Ok(None) => {
-
-            //Delay to defense blind attack
-            let mut rng = {
-                let rng = rand::thread_rng();
-                StdRng::from_rng(rng).unwrap()
-            };
-            time::sleep(Duration::from_secs_f64(rng.gen_range(0.5..2.0))).await;
+            time::sleep(Duration::from_secs_f64(rng.gen_range(0.3..1.3))).await;
 
             warn!("Unregistered Email requested: {}", payload.email);
             return (jar, ServerResult::Error(GetSessionError::WrongIdentity));
