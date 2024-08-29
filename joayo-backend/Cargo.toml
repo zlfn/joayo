@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = [".", "api", "api/api_derive", "service"]
+members = [".", "api", "api/api_derive", "cron"]
 
 [dependencies]
 api = {path = "api"}
-service = {path = "service"}
+cron = {path = "cron"}
 tokio = { version = "1.39.3", features = ["full"] }
 proc-macro2 = "1.0.86"
 tracing = "0.1.40"

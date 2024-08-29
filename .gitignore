@@ -1,4 +1,6 @@
 # bazel
 bazel-*
-#node
+# node
 node_modules
+# idea
+.idea

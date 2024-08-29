@@ -7,9 +7,13 @@ edition = "2021"
 api_derive = { path = "./api_derive" }
 argon2 = "0.5.3"
 axum = { version = "0.7.5" }
-axum-extra = { version = "0.9.3", features = ["cookie", "typed-header"] }
+axum-extra = { version = "0.9.3", features = ["cookie", "typed-header", "multipart"] }
 axum-macros = "0.4.1"
+axum_typed_multipart = "0.12.1"
+bytes = "1.7.1"
 chrono = "0.4.38"
+headers = "0.4.0"
+image = { version = "0.25.2", features = ["avif-native"] }
 log = "0.4.22"
 rand = "0.8.5"
 sea-orm = { version = "1.0.0", features = ["sqlx-postgres", "runtime-tokio-rustls"] } 

@@ -48,3 +48,24 @@ fn impl_from_session_error(item: &syn::DeriveInput) -> TokenStream {
     }.into()
 }
 
+#[proc_macro_derive(FromImageError)]
+pub fn from_image_error(input: TokenStream) -> TokenStream {
+    let item = syn::parse(input).unwrap();
+    impl_from_image_error(&item)
+}
+
+fn impl_from_image_error(item: &syn::DeriveInput) -> TokenStream {
+    let item = &item.ident;
+
+    quote! {
+        impl crate::common::image::FromImageError for #item {
+            fn from_image_error(image_error: crate::common::image::ImageError) -> Self {
+                match image_error {
+                    crate::common::image::ImageError::UnsupportedFormat => Self::UnsupportedFormat,
+                    crate::common::image::ImageError::DecodeFailed => Self::DecodeFailed,
+                    crate::common::image::ImageError::InternalServerError => Self::InternalServerError,
+                }
+            }
+        }
+    }.into()
+}

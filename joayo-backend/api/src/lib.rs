@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use axum::{routing::{delete, get, post, put}, Router};
+use axum::{extract::DefaultBodyLimit, routing::{delete, get, post, put}, Router};
 use migration::Migrator;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use sea_orm_migration::MigratorTrait;
@@ -11,6 +11,7 @@ use tracing::info;
 pub mod migration;
 pub mod entities;
 pub mod user;
+pub mod joayo;
 pub mod common;
 pub mod server_result;
 
@@ -41,9 +42,9 @@ pub async fn axum_start(mut shutdown_rx: Receiver<()>) {
         .route("/session", get(user::check_session))
         .route("/session", post(user::get_session))
         .route("/session", delete(user::delete_session))
-        .layer((
-            TimeoutLayer::new(Duration::from_secs(30)),
-        ))
+        .route("/joayo", post(joayo::create_joayo))
+        .layer(TimeoutLayer::new(Duration::from_secs(30)))
+        .layer(DefaultBodyLimit::max(50*1024*1024)) //50MB
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:7878").await.unwrap();
