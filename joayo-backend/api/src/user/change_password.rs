@@ -23,7 +23,6 @@ pub struct ChangePasswordRequest {
 pub enum ChangePasswordError {
     BadNewPassword,
     WrongOldPassword,
-    Unauthorized,
     SessionInvalid,
     InternalServerError
 }
@@ -32,9 +31,8 @@ impl ToStatusCode for ChangePasswordError {
     fn to_status_code(&self) -> StatusCode {
         match self {
             Self::BadNewPassword => return StatusCode::UNPROCESSABLE_ENTITY,
-            Self::WrongOldPassword => return StatusCode::UNAUTHORIZED,
-            Self::Unauthorized => return StatusCode::UNAUTHORIZED,
-            Self::SessionInvalid => return StatusCode::FORBIDDEN,
+            Self::WrongOldPassword => return StatusCode::FORBIDDEN,
+            Self::SessionInvalid => return StatusCode::UNAUTHORIZED,
             Self::InternalServerError => return StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

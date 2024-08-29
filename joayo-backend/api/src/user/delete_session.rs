@@ -14,14 +14,14 @@ use crate::entities::prelude::*;
 
 #[derive(Serialize)]
 pub enum DeleteSessionError {
-    Unauthorized,
+    SessionInvalid,
     InternalServerError
 }
 
 impl ToStatusCode for DeleteSessionError {
     fn to_status_code(&self) -> StatusCode {
         match self {
-            Self::Unauthorized => StatusCode::UNAUTHORIZED,
+            Self::SessionInvalid => StatusCode::UNAUTHORIZED,
             Self::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -37,10 +37,10 @@ pub async fn delete_session(
             Ok(session_id) => session_id,
             Err(_) => {
                 warn!("Invalid session_id requested: {}", session_id.value());
-                return (jar, ServerResult::Error(DeleteSessionError::Unauthorized))
+                return (jar, ServerResult::Error(DeleteSessionError::SessionInvalid))
             }
         }
-        None => return (jar, ServerResult::Error(DeleteSessionError::Unauthorized))
+        None => return (jar, ServerResult::Error(DeleteSessionError::SessionInvalid))
     };
 
     let delete_result = Session::delete_by_id(session_id)

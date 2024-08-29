@@ -7,7 +7,6 @@ use uuid::Uuid;
 use crate::entities::{prelude::*, *};
 
 pub enum SessionError {
-    Unauthorized,
     SessionInvalid,
     InternalServerError,
 }
@@ -27,7 +26,7 @@ pub async fn get_user_from_session<T: FromSessionError>
                 return Result::Err(T::from_session_error(SessionError::SessionInvalid))
             }
         }
-        None => return Result::Err(T::from_session_error(SessionError::Unauthorized))
+        None => return Result::Err(T::from_session_error(SessionError::SessionInvalid))
     };
 
     let session = Session::find_by_id(session_id)

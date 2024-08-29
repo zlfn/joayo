@@ -3,6 +3,7 @@ using TypeSpec.Http;
 
 namespace Joayo;
 
+@doc("세션 발급 요청데이터입니다.")
 model GetSessionRequest {
 	@doc("세션을 발급할 유저의 이메일 주소입니다.")
 	email: string;
@@ -18,7 +19,7 @@ enum GetSessionError {
 }
 
 /**
-성공적으로 세션을 발급했습니다.
+세션을 발급하는데 성공했습니다.
 */
 model GetSessionResponse {
 	@statusCode statusCode: 200,
@@ -42,9 +43,9 @@ model WrongIdentityError {
 세션은 웹 프론트엔드 로그인을 위해 사용되며, 언제든지 사양이 변경될 가능성이 있습니다.
 외부 연동 서비스의 경우에는 토큰을 이용하세요. (구현 예정)
 */
-@route("/login")
-@summary("세션 발급")
-@tag("user")
 @post
+@route("/session")
+@tag("user")
+@summary("세션 발급")
 op get_session(@body payload: GetSessionRequest): GetSessionResponse
 | WrongIdentityError | InternalServerError;

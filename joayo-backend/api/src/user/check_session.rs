@@ -15,7 +15,6 @@ pub struct CheckSessionResponse {
 
 #[derive(Serialize, FromSessionError)]
 pub enum CheckSessionError {
-    Unauthorized,
     SessionInvalid,
     InternalServerError
 }
@@ -23,8 +22,7 @@ pub enum CheckSessionError {
 impl ToStatusCode for CheckSessionError {
     fn to_status_code(&self) -> StatusCode {
         match self {
-            Self::Unauthorized => return StatusCode::UNAUTHORIZED,
-            Self::SessionInvalid => return StatusCode::FORBIDDEN,
+            Self::SessionInvalid => return StatusCode::UNAUTHORIZED,
             Self::InternalServerError => return StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

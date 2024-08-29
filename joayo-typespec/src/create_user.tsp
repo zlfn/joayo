@@ -22,7 +22,7 @@ enum CreateUserError {
 }
 
 /**
-성공적으로 유저를 생성했습니다.
+유저를 생성하는데 성공했습니다.
 */
 model CreateUserResponse {
 	@statusCode statusCode: 201,
@@ -49,12 +49,13 @@ model BadPasswordError {
 
 
 /**
-이메일과 비밀번호로 새로운 유저를 생성합니다.  
+이메일과 비밀번호로 새로운 유저를 생성합니다.
+
 추후 이메일 인증 전까지 계정을 활성화하지 않을 예정이 있습니다.
 */
-@route("/register")
+@post
+@route("/user")
 @summary("유저 생성")
 @tag("user")
-@post
 op createUser(@body payload: CreateUserRequest): CreateUserResponse
 | EmailExistError | BadPasswordError | InternalServerError;

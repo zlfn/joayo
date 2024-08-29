@@ -36,11 +36,11 @@ pub async fn axum_start(mut shutdown_rx: Receiver<()>) {
 
     let app = Router::new()
         .route("/", get(root))
-        .route("/register", post(user::create_user))
+        .route("/user", post(user::create_user))
         .route("/password", put(user::change_password))
-        .route("/login", get(user::check_session))
-        .route("/login", post(user::get_session))
-        .route("/login", delete(user::delete_session))
+        .route("/session", get(user::check_session))
+        .route("/session", post(user::get_session))
+        .route("/session", delete(user::delete_session))
         .layer((
             TimeoutLayer::new(Duration::from_secs(30)),
         ))

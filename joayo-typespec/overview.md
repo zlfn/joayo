@@ -25,10 +25,7 @@ JOAYO의 API 문서입니다.
 ```
 
 `JsonErrorType`으로 주어질 수 있는 값은 아래와 같습니다.
-* `"JsonDataError"`: JSON의 문법 혹은 JSON의 형태가 필요료 하는 형식과 맞지 않을 경우
+* `"JsonDataError"`: JSON의 형태가 필요로 하는 형식과 맞지 않을 경우
+* `"JsonSyntaxError"`: JSON의 문법이 틀린 경우
 * `"JsonContentTypeError"`: HTTP 헤더의 `Content-Type`이 `application/json`이 아닌 경우
 * `"JsonBytesError"`: 서버가 JSON 파싱 중에 Rust의 `Bytes` 와 관련된 오류를 일으킨 경우
-
-아래는 주어지지 않으나, 추후 주어질 가능성이 있는 값입니다.
-* `"JsonSyntaxError"`: 원래는 JSON의 문법이 틀렸을 때 `JsonDataError`가 아닌 이 오류가 반환되어야 하나, 백엔드가 사용하는 프레임워크인 Axum과 관련된 문제로 실제로 사용되지 않음.
-* `"JsonUnknownError"`: Axum의 JSON 파싱 로직이 바뀌었을 때를 대비한 오류

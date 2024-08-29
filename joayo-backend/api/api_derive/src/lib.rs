@@ -40,7 +40,6 @@ fn impl_from_session_error(item: &syn::DeriveInput) -> TokenStream {
         impl crate::common::session::FromSessionError for #item {
             fn from_session_error(session_error: crate::common::session::SessionError) -> Self {
                 match session_error {
-                    crate::common::session::SessionError::Unauthorized => Self::Unauthorized,
                     crate::common::session::SessionError::SessionInvalid => Self::SessionInvalid,
                     crate::common::session::SessionError::InternalServerError => Self::InternalServerError,
                 }
