@@ -1,10 +1,11 @@
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use axum::{extract::DefaultBodyLimit, routing::{delete, get, post, put}, Router};
+use bytes::Bytes;
 use migration::Migrator;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use sea_orm_migration::MigratorTrait;
-use tokio::{select, sync::watch::Receiver};
+use tokio::{select, sync::watch};
 use tower_http::timeout::TimeoutLayer;
 use tracing::info;
 
@@ -18,9 +19,13 @@ pub mod server_result;
 #[derive(Clone)]
 pub struct AppState {
     db: DatabaseConnection,
+    image_tx: crossbeam::channel::Sender<Arc<Bytes>>
 }
 
-pub async fn axum_start(mut shutdown_rx: Receiver<()>) {
+pub async fn axum_start(
+    mut shutdown_rx: watch::Receiver<()>,
+    image_tx: crossbeam::channel::Sender<Arc<Bytes>>
+ ) {
 
     let mut opt = ConnectOptions::new("postgres://joayo:joayo@0.0.0.0/joayo".to_owned());
     opt.sqlx_logging_level(log::LevelFilter::Debug);
@@ -33,7 +38,10 @@ pub async fn axum_start(mut shutdown_rx: Receiver<()>) {
     Migrator::up(&db, None).await.unwrap();
     //Migrator::down(&db, None).await.unwrap();
 
-    let state = AppState { db: db.clone() };
+    let state = AppState { 
+        db: db.clone(),
+        image_tx: image_tx.clone(),
+    };
 
     let app = Router::new()
         .route("/", get(root))
@@ -53,7 +61,7 @@ pub async fn axum_start(mut shutdown_rx: Receiver<()>) {
         .with_graceful_shutdown(async move {
             select! {
                 _ = shutdown_rx.changed() => {
-                    info!("Shutting down Axum");
+                    info!("Shutting down Axum...");
                     db.close().await.unwrap();
                     info!("Database connection closed.");
                 }

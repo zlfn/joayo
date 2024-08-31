@@ -1,59 +1,55 @@
-use api_derive::{FromImageError, FromSessionError};
+use std::sync::Arc;
+
+use api_derive::FromSessionError;
 use axum::{extract::State, http::StatusCode};
-use axum_extra::{extract::{CookieJar, Multipart}, TypedHeader};
+use axum_extra::extract::CookieJar;
 use axum_typed_multipart::{TryFromMultipart, TypedMultipart};
 use bytes::Bytes;
-use serde::{Deserialize, Serialize};
-use headers::ContentType;
-use tracing::info;
+use serde::Serialize;
+use tracing::error;
 
-use crate::{common::image::convert_to_avif, server_result::{ServerResult, ToStatusCode}};
+use crate::{common::session::get_user_from_session, server_result::{ServerResult, ToStatusCode}};
 
 #[derive(TryFromMultipart)]
 pub struct CreateJoayoRequest {
-    #[form_data(field_name = "image", limit = "50MiB")]
+    #[form_data(field_name = "image", limit = "50MB")]
     image: Bytes,
-    #[form_data(field_name = "image-type")]
-    image_type: String,
 }
 
-#[derive(Deserialize)]
-pub struct CreateJoayoRequestJson {
-    test: String,
-}
-
-#[derive(Serialize, FromSessionError, FromImageError)]
+#[derive(Serialize, FromSessionError)]
 pub enum CreateJoayoError {
     SessionInvalid,
-    UnsupportedFormat,
-    MissingMimeContentType,
-    DecodeFailed,
+    EncodingRequestFailed,
     InternalServerError
 }
 
 impl ToStatusCode for CreateJoayoError {
     fn to_status_code(&self) -> StatusCode {
         match self {
-            Self::UnsupportedFormat => return StatusCode::UNPROCESSABLE_ENTITY,
-            Self::DecodeFailed => return StatusCode::UNPROCESSABLE_ENTITY,
-            Self::MissingMimeContentType => return StatusCode::UNPROCESSABLE_ENTITY,
             Self::SessionInvalid => return StatusCode::UNAUTHORIZED,
+            Self::EncodingRequestFailed => return StatusCode::SERVICE_UNAVAILABLE,
             Self::InternalServerError => return StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }
 
 pub async fn create_joayo(
-    TypedHeader(content_type): TypedHeader<ContentType>,
     state: State<crate::AppState>,
     jar: CookieJar,
     multipart: TypedMultipart<CreateJoayoRequest>
 ) -> ServerResult<(), CreateJoayoError> {
 
-    let avif = convert_to_avif::<CreateJoayoError>(&multipart.image, &multipart.image_type).await;
+    let _user = match get_user_from_session::<CreateJoayoError>(&jar, &state.db).await {
+        Ok(user) => user,
+        Err(err) => return ServerResult::Error(err)
+    };
 
-    if let Ok(avif) = avif {
-        info!("{:?}", avif);
+    //TODO: Register JOAYO to database.
+
+    let image_send = state.image_tx.send(Arc::new(multipart.image.clone()));
+    if let Err(err) = image_send {
+        error!("Failed to send image to queue: {}", err);
+        return ServerResult::Error(CreateJoayoError::EncodingRequestFailed);
     }
 
     ServerResult::Ok(())
