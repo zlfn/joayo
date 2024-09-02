@@ -1,42 +1,28 @@
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use axum::{extract::DefaultBodyLimit, routing::{delete, get, post, put}, Router};
 use bytes::Bytes;
-use migration::Migrator;
-use sea_orm::{ConnectOptions, Database, DatabaseConnection};
-use sea_orm_migration::MigratorTrait;
+use sea_orm::DatabaseConnection;
 use tokio::{select, sync::watch};
 use tower_http::timeout::TimeoutLayer;
 use tracing::info;
 
-pub mod migration;
-pub mod entities;
 pub mod user;
 pub mod joayo;
 pub mod common;
-pub mod server_result;
 
 #[derive(Clone)]
 pub struct AppState {
     db: DatabaseConnection,
-    image_tx: crossbeam::channel::Sender<Arc<Bytes>>
+    image_tx: crossbeam::channel::Sender<Bytes>
 }
 
 pub async fn axum_start(
+    db: DatabaseConnection,
     mut shutdown_rx: watch::Receiver<()>,
-    image_tx: crossbeam::channel::Sender<Arc<Bytes>>
+    image_tx: crossbeam::channel::Sender<Bytes>
  ) {
 
-    let mut opt = ConnectOptions::new("postgres://joayo:joayo@0.0.0.0/joayo".to_owned());
-    opt.sqlx_logging_level(log::LevelFilter::Debug);
-    let db: DatabaseConnection = Database::connect(opt)
-        .await
-        .expect("Failed to connect database");
-
-    info!("Database connection established.");
-
-    Migrator::up(&db, None).await.unwrap();
-    //Migrator::down(&db, None).await.unwrap();
 
     let state = AppState { 
         db: db.clone(),
@@ -55,15 +41,13 @@ pub async fn axum_start(
         .layer(DefaultBodyLimit::max(50*1024*1024)) //50MB
         .with_state(state);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:7878").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:7877").await.unwrap();
 
     axum::serve(listener, app)
         .with_graceful_shutdown(async move {
             select! {
                 _ = shutdown_rx.changed() => {
                     info!("Shutting down Axum...");
-                    db.close().await.unwrap();
-                    info!("Database connection closed.");
                 }
             }
         })

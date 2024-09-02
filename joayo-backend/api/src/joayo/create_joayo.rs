@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use api_derive::FromSessionError;
 use axum::{extract::State, http::StatusCode};
 use axum_extra::extract::CookieJar;
@@ -8,7 +6,7 @@ use bytes::Bytes;
 use serde::Serialize;
 use tracing::error;
 
-use crate::{common::session::get_user_from_session, server_result::{ServerResult, ToStatusCode}};
+use crate::{common::session::get_user_from_session, common::result::{ServerResult, ToStatusCode}};
 
 #[derive(TryFromMultipart)]
 pub struct CreateJoayoRequest {
@@ -46,7 +44,7 @@ pub async fn create_joayo(
 
     //TODO: Register JOAYO to database.
 
-    let image_send = state.image_tx.send(Arc::new(multipart.image.clone()));
+    let image_send = state.image_tx.send(multipart.image.clone());
     if let Err(err) = image_send {
         error!("Failed to send image to queue: {}", err);
         return ServerResult::Error(CreateJoayoError::EncodingRequestFailed);

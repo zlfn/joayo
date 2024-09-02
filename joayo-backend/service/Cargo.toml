@@ -4,8 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+aws-config = "1.5.5"
+aws-sdk-s3 = "1.47.0"
+aws-smithy-types = "1.2.4"
 bytes = "1.7.1"
+config = "0.14.0"
 crossbeam = { version = "0.8.4", features = ["crossbeam-channel"] }
+hyper = { version = "1.4.1", features = ["client"] }
 libavif = "0.14.0"
 tokio = { version = "1.39.3", features = ["full"] }
 tracing = "0.1.40"

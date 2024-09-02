@@ -5,7 +5,7 @@ use axum_extra::extract::CookieJar;
 use serde::Serialize;
 
 use crate::common::session::get_user_from_session;
-use crate::server_result::{ServerResult, ToStatusCode};
+use crate::common::result::{ServerResult, ToStatusCode};
 
 #[derive(Serialize, ToStatusCode)]
 #[status_code(OK)]

@@ -14,8 +14,8 @@ use tokio::time;
 use tracing::{error, warn};
 use uuid::Uuid;
 
-use crate::server_result::{ToStatusCode, ServerResult, Json};
-use crate::entities::{prelude::*, *};
+use crate::common::result::{ToStatusCode, ServerResult, Json};
+use orm::entities::{prelude::*, *};
 
 #[derive(Deserialize)]
 pub struct GetSessionRequest {

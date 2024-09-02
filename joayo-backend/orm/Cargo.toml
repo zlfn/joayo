@@ -1,0 +1,8 @@
+[package]
+name = "orm"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sea-orm = { version = "1.0.0", features = ["sqlx-postgres", "runtime-tokio-rustls"] } 
+sea-orm-migration = "1.0.0"

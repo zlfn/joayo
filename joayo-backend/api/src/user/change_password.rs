@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 use tracing::{error, warn};
 use uuid::Uuid;
 
-use crate::{common::session::get_user_from_session, server_result::{Json, ServerResult, ToStatusCode}};
-use crate::entities::{prelude::*, *};
+use crate::{common::session::get_user_from_session, common::result::{Json, ServerResult, ToStatusCode}};
+use orm::entities::{prelude::*, *};
 
 
 #[derive(Deserialize)]

@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 api_derive = { path = "./api_derive" }
+orm = { path = "../orm" }
 argon2 = "0.5.3"
 axum = { version = "0.7.5" }
 axum-extra = { version = "0.9.3", features = ["cookie", "typed-header", "multipart"] }
@@ -14,10 +15,8 @@ bytes = "1.7.1"
 chrono = "0.4.38"
 crossbeam = { version = "0.8.4", features = ["crossbeam-channel"] }
 headers = "0.4.0"
-log = "0.4.22"
 rand = "0.8.5"
 sea-orm = { version = "1.0.0", features = ["sqlx-postgres", "runtime-tokio-rustls"] } 
-sea-orm-migration = "1.0.0"
 serde = { version = "1.0.208", features = ["derive"] }
 serde_json = "1.0.125"
 thiserror = "1.0.63"

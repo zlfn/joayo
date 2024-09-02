@@ -4,14 +4,19 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = [".", "api", "api/api_derive", "service"]
+members = [".", "api", "api/api_derive", "orm", "service"]
 
 [dependencies]
 api = {path = "api"}
 service = {path = "service"}
+orm = {path = "orm"}
 tokio = { version = "1.39.3", features = ["full"] }
 proc-macro2 = "1.0.86"
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
 crossbeam = { version = "0.8.4", features = ["crossbeam-channel"] }
 bytes = "1.7.1"
+sea-orm = { version = "1.0.0", features = ["sqlx-postgres", "runtime-tokio-rustls"] } 
+sea-orm-migration = "1.0.0"
+log = "0.4.22"
+config = "0.14.0"

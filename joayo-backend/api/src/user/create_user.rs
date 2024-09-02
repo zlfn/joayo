@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 use tracing::{error, warn};
 use uuid::Uuid;
 
-use crate::entities::{prelude::*, *};
-use crate::server_result::{ServerResult, ToStatusCode, Json};
+use orm::entities::{prelude::*, *};
+use crate::common::result::{ServerResult, ToStatusCode, Json};
 
 #[derive(Deserialize)]
 pub struct CreateUserRequest {

@@ -4,7 +4,7 @@ use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set};
 use tracing::{error, warn};
 use uuid::Uuid;
 
-use crate::entities::{prelude::*, *};
+use orm::entities::{prelude::*, *};
 
 pub enum SessionError {
     SessionInvalid,
