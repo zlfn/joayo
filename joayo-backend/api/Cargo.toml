@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 api_derive = { path = "./api_derive" }
 orm = { path = "../orm" }
+service = { path = "../service" }
 argon2 = "0.5.3"
 axum = { version = "0.7.5" }
 axum-extra = { version = "0.9.3", features = ["cookie", "typed-header", "multipart"] }

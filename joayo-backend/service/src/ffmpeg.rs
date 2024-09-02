@@ -17,8 +17,8 @@ pub struct FFmpegConverter {
     ffmpeg_path: String,
     image_path: String,
     timeout: Duration,
-    crf: i64,
-    threads: u64,
+    crf: i8,
+    threads: u32,
 }
 
 impl FFmpegConverter {
@@ -99,8 +99,8 @@ impl FFmpegConverter {
 
 pub struct FFmpegConverterBuilder {
     timeout: Duration,
-    crf: i64,
-    threads: u64,
+    crf: i8,
+    threads: u32,
     ffmpeg_path: String,
     image_path: String,
 }
@@ -121,7 +121,7 @@ impl FFmpegConverterBuilder {
         self
     }
 
-    pub fn threads(mut self, threads: u64) -> Self {
+    pub fn threads(mut self, threads: u32) -> Self {
         self.threads = threads;
         self
     }
@@ -136,7 +136,7 @@ impl FFmpegConverterBuilder {
         self
     }
 
-    pub fn crf(mut self, crf: i64) -> Result<Self, io::Error> {
+    pub fn crf(mut self, crf: i8) -> Result<Self, io::Error> {
         if crf < -1 || crf > 63 {
             return Err(io::Error::new(std::io::ErrorKind::InvalidData, "crf must be a value in -1~63"));
         }
@@ -144,7 +144,7 @@ impl FFmpegConverterBuilder {
         return Ok(self);
     }
 
-    pub fn build(self) -> FFmpegConverter {
+    pub fn build<'a>(self) -> FFmpegConverter {
         FFmpegConverter {
             timeout: self.timeout,
             crf: self.crf,

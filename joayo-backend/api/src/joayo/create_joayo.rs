@@ -4,7 +4,9 @@ use axum_extra::extract::CookieJar;
 use axum_typed_multipart::{TryFromMultipart, TypedMultipart};
 use bytes::Bytes;
 use serde::Serialize;
+use service::image::ImageUploadRequest;
 use tracing::error;
+use uuid::Uuid;
 
 use crate::{common::session::get_user_from_session, common::result::{ServerResult, ToStatusCode}};
 
@@ -44,7 +46,12 @@ pub async fn create_joayo(
 
     //TODO: Register JOAYO to database.
 
-    let image_send = state.image_tx.send(multipart.image.clone());
+    let image_send = state.image_tx.send(ImageUploadRequest {
+        joayo_uuid: Uuid::now_v7(),
+        bytes: multipart.image.clone(),
+        crf: 40
+    });
+
     if let Err(err) = image_send {
         error!("Failed to send image to queue: {}", err);
         return ServerResult::Error(CreateJoayoError::EncodingRequestFailed);

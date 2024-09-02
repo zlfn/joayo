@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use axum::{extract::DefaultBodyLimit, routing::{delete, get, post, put}, Router};
-use bytes::Bytes;
 use sea_orm::DatabaseConnection;
+use service::image::ImageUploadRequest;
 use tokio::{select, sync::watch};
 use tower_http::timeout::TimeoutLayer;
 use tracing::info;
@@ -14,13 +14,13 @@ pub mod common;
 #[derive(Clone)]
 pub struct AppState {
     db: DatabaseConnection,
-    image_tx: crossbeam::channel::Sender<Bytes>
+    image_tx: crossbeam::channel::Sender<ImageUploadRequest>
 }
 
 pub async fn axum_start(
     db: DatabaseConnection,
     mut shutdown_rx: watch::Receiver<()>,
-    image_tx: crossbeam::channel::Sender<Bytes>
+    image_tx: crossbeam::channel::Sender<ImageUploadRequest>
  ) {
 
 

@@ -1,7 +1,7 @@
-use bytes::Bytes;
 use config::Config;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use sea_orm_migration::MigratorTrait;
+use service::image::ImageUploadRequest;
 use tracing::{warn, info};
 use tracing_subscriber::{filter, layer::SubscriberExt, util::SubscriberInitExt, Layer};
 use tokio::{select, signal::unix::{signal, SignalKind}, sync::watch, task};
@@ -13,7 +13,7 @@ async fn main() {
     let (service_shutdown_tx, service_shutdown_rx) = watch::channel(());
 
     //Channel to exchange image encode & upload request
-    let (encode_tx, encode_rx) = crossbeam::channel::unbounded::<Bytes>();
+    let (encode_tx, encode_rx) = crossbeam::channel::unbounded::<ImageUploadRequest>();
 
     tracing_subscriber::registry()
         .with(
