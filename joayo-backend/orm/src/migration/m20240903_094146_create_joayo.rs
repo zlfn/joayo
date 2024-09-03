@@ -5,13 +5,14 @@ use super::m20240822_184236_create_user::User;
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
-#[derive(Iden)]
-enum Session {
+#[derive(DeriveIden)]
+pub enum Joayo {
     Table,
-    SessionId,
-    UserId,
+    JoayoId,
     CreatedAt,
-    ExpiresAt,
+    ImageUrl,
+    ReferenceUrl,
+    UserId,
 }
 
 #[async_trait::async_trait]
@@ -20,16 +21,17 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Session::Table)
+                    .table(Joayo::Table)
                     .if_not_exists()
-                    .col(uuid(Session::SessionId).primary_key())
-                    .col(uuid(Session::UserId))
-                    .col(timestamp(Session::CreatedAt))
-                    .col(timestamp(Session::ExpiresAt))
+                    .col(uuid(Joayo::JoayoId).primary_key())
+                    .col(timestamp(Joayo::CreatedAt))
+                    .col(string_null(Joayo::ImageUrl))
+                    .col(string_null(Joayo::ReferenceUrl))
+                    .col(uuid(Joayo::UserId))
                     .foreign_key(
                         ForeignKey::create()
-                            .name("fk-session-user_id")
-                            .from(Session::Table, Session::UserId)
+                            .name("fk-joayo-user_id")
+                            .from(Joayo::Table, Joayo::UserId)
                             .to(User::Table, User::UserId)
                     )
                     .to_owned(),
@@ -39,7 +41,7 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(Session::Table).to_owned())
+            .drop_table(Table::drop().table(Joayo::Table).to_owned())
             .await
     }
 }

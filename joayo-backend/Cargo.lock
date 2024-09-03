@@ -3721,6 +3721,8 @@ dependencies = [
  "hyper 1.4.1",
  "hyper-rustls 0.27.2",
  "libavif",
+ "orm",
+ "sea-orm",
  "tokio",
  "tracing",
  "uuid",

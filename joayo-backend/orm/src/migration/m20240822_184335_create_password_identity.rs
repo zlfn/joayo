@@ -20,11 +20,7 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(PasswordIdentity::Table)
                     .if_not_exists()
-                    .col(ColumnDef::new(User::UserId)
-                        .uuid()
-                        .not_null()
-                        .primary_key()
-                    )
+                    .col(uuid(User::UserId).primary_key())
                     .col(string(PasswordIdentity::PasswordHash))
                     .foreign_key(
                         ForeignKey::create()

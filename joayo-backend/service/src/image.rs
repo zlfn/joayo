@@ -1,37 +1,55 @@
-use std::{io, time::Duration};
+use std::{fmt::Display, time::Duration};
 
 use async_scoped::TokioScope;
 use aws_sdk_s3::primitives::ByteStream;
 use bytes::Bytes;
+use sea_orm::{ActiveModelTrait, ActiveValue, DatabaseConnection, DbErr};
 use tokio::sync::watch;
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
 use crate::ffmpeg::FFmpegConverter;
+use orm::entities::*;
 
 pub struct ImageUploadRequest {
-    pub joayo_uuid: Uuid,
+    pub joayo_id: Uuid,
     pub crf: i8,
     pub bytes: Bytes,
 }
 
+pub enum ImageUploadResult {
+    Ok,
+    EncodeFailed,
+    UploadFailed,
+    InternalServerError,
+}
+
+impl Display for ImageUploadResult {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Ok => write!(f, "Ok"),
+            Self::EncodeFailed => write!(f, "EncodeFailed"),
+            Self::UploadFailed => write!(f, "UploadFailed"),
+            Self::InternalServerError => write!(f, "InternalServerError"),
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct ImageQueueExecutor {
-    ffmpeg_path: String,
-    ffmpeg_timeout: Duration,
-    ffmpeg_threads: u32,
-    image_path: String,
-    s3_name: String,
-    s3_client: aws_sdk_s3::Client,
-    shutdown_rx: watch::Receiver<()>,
-    encode_rx: crossbeam::channel::Receiver<ImageUploadRequest>
+    pub db: DatabaseConnection,
+    pub ffmpeg_path: String,
+    pub ffmpeg_timeout: Duration,
+    pub ffmpeg_threads: u32,
+    pub image_path: String,
+    pub s3_name: String,
+    pub s3_client: aws_sdk_s3::Client,
+    pub s3_public_url: String,
+    pub shutdown_rx: watch::Receiver<()>,
+    pub encode_rx: crossbeam::channel::Receiver<ImageUploadRequest>
 }
 
 impl ImageQueueExecutor {
-    pub fn builder() -> ImageQueueExecutorBuilder {
-        ImageQueueExecutorBuilder::new()
-    }
-
     pub async fn exec(&self, name: String) {
         while !self.shutdown_rx.has_changed().unwrap() {
             //https://github.com/awslabs/aws-sdk-rust/issues/611
@@ -58,7 +76,9 @@ impl ImageQueueExecutor {
             Err(_) => return,
         };
 
-        info!("{}: Received image encoding request: {}KB", name, request.bytes.len()/1024);
+        let original_size = request.bytes.len();
+
+        info!("{}: Received image encoding request: {}KB", name, original_size/1024);
 
         let ffmpeg = FFmpegConverter::builder()
             .timeout(self.ffmpeg_timeout)
@@ -70,10 +90,15 @@ impl ImageQueueExecutor {
         let ffmpeg = match ffmpeg {
             Ok(ffmpeg) => ffmpeg.build(),
             Err(err) => {
-                error!("{}", err);
-
-                //TODO: Error handling logic.
-
+                warn!("{}: FFmpeg configuration failed: {:?}", name, err);
+                if let Err(err) = self.write_upload_result(
+                    request.joayo_id, 
+                    original_size as i32, 
+                    None, None, 
+                    ImageUploadResult::EncodeFailed
+                ).await {
+                    error!("{}: Failed to register upload result: {}", name, err);
+                }
                 return;
             }
         };
@@ -84,16 +109,22 @@ impl ImageQueueExecutor {
             Ok(avif_bytes) => avif_bytes,
             Err(err) => {
                 warn!("{}: Encoding failed: {:?}", name, err);
-
-                //TODO: Error handling logic.
-
+                if let Err(err) = self.write_upload_result(
+                    request.joayo_id, 
+                    original_size as i32, 
+                    None, None, 
+                    ImageUploadResult::EncodeFailed
+                ).await {
+                    error!("{}: Failed to register upload result: {}", name, err);
+                }
                 return;
             }
         };
 
-        info!("{}: Encoding completed: {}KB", name, (*avif_bytes).len()/1024);
+        let file_size = (*avif_bytes).len();
+        info!("{}: Encoding completed: {}KB", name, file_size/1024);
 
-        let file_name = format!("{}.avif", Uuid::now_v7());
+        let file_name = format!("{}.avif", Uuid::new_v4());
 
         let upload_result = &self.s3_client
             .put_object()
@@ -103,114 +134,50 @@ impl ImageQueueExecutor {
             .send().await;
 
         if let Err(err) = upload_result {
-            error!("{:?}", err);
-
-            //TODO: Error handling logic.
-
+            warn!("{}: S3 upload failed: {:?}", name, err);
+            if let Err(err) = self.write_upload_result(
+                request.joayo_id, 
+                original_size as i32, 
+                Some(file_size as i32),
+                None, 
+                ImageUploadResult::UploadFailed,
+            ).await {
+                error!("{}: Failed to register upload result: {}", name, err);
+            }
+            return;
         }
 
-        //TODO: Database update logic.
+        if let Err(err) = self.write_upload_result(
+            request.joayo_id, 
+            original_size as i32, 
+            Some(file_size as i32),
+            Some(format!("{}/{}", self.s3_public_url, file_name)), 
+            ImageUploadResult::Ok,
+        ).await {
+            error!("{}: Failed to register upload result: {}", name, err);
+        }
 
         info!("{}: Upload completed: {}", name, file_name);
 
         return;
     }
-}
 
-pub struct ImageQueueExecutorBuilder {
-    name: String,
-    image_path: String,
-    ffmpeg_path: String,
-    ffmpeg_timeout: Duration,
-    ffmpeg_threads: u32,
-    s3_name: String,
-    s3_client: Option<aws_sdk_s3::Client>,
-    shutdown_rx: Option<watch::Receiver<()>>,
-    encode_rx: Option<crossbeam::channel::Receiver<ImageUploadRequest>>
-}
+    async fn write_upload_result(
+        &self,
+        joayo_id: Uuid, 
+        original_size: i32,
+        file_size: Option<i32>,
+        object_url: Option<String>,
+        result: ImageUploadResult
+    ) -> Result<(), DbErr> {
+        upload_result::ActiveModel {
+            joayo_id: ActiveValue::Set(joayo_id),
+            original_size: ActiveValue::Set(original_size),
+            file_size: ActiveValue::Set(file_size),
+            object_url: ActiveValue::Set(object_url),
+            result: ActiveValue::Set(result.to_string())
+        }.insert(&self.db).await?;
 
-impl ImageQueueExecutorBuilder {
-    pub fn new() -> Self {
-        Self {
-            name: "IMAGE".to_string(),
-            image_path: "./images".to_string(),
-            ffmpeg_path: "./images/bin/ffmpeg".to_string(),
-            ffmpeg_timeout: Duration::from_secs(30),
-            ffmpeg_threads: 4,
-            s3_name: "joayo-r2".to_string(),
-            s3_client: None,
-            shutdown_rx: None,
-            encode_rx: None,
-        }
-    }
-
-    pub fn build(&self) -> Result<ImageQueueExecutor, io::Error> {
-        let s3_client = match &self.s3_client {
-            Some(s3_client) => s3_client,
-            None => return Result::Err(io::Error::new(io::ErrorKind::InvalidData, "s3_client is None"))
-        };
-        let shutdown_rx = match &self.shutdown_rx {
-            Some(shutdown_rx) => shutdown_rx,
-            None => return Result::Err(io::Error::new(io::ErrorKind::InvalidData, "shutdown_rx is None"))
-        };
-        let encode_rx = match &self.encode_rx {
-            Some(encode_rx) => encode_rx,
-            None => return Result::Err(io::Error::new(io::ErrorKind::InvalidData, "encode_rx is None"))
-        };
-        Ok(ImageQueueExecutor {
-            image_path: self.image_path.clone(),
-            ffmpeg_path: self.ffmpeg_path.clone(),
-            ffmpeg_timeout: self.ffmpeg_timeout,
-            ffmpeg_threads: self.ffmpeg_threads,
-            s3_name: self.s3_name.clone(),
-            s3_client: s3_client.clone(),
-            shutdown_rx: shutdown_rx.clone(),
-            encode_rx: encode_rx.clone()
-        })
-    }
-
-    pub fn image_path(mut self, path: String) -> Self {
-        self.image_path = path;
-        self
-    }
-
-    pub fn name(mut self, name: String) -> Self {
-        self.name = name;
-        self
-    }
-
-    pub fn ffmpeg_path(mut self, path: String) -> Self {
-        self.ffmpeg_path = path;
-        self
-    }
-
-    pub fn ffmpeg_timeout(mut self, timeout: Duration) -> Self {
-        self.ffmpeg_timeout = timeout;
-        self
-    }
-
-    pub fn ffmpeg_threads(mut self, threads: u32) -> Self {
-        self.ffmpeg_threads = threads;
-        self
-    }
-
-    pub fn s3_name(mut self, name: String) -> Self {
-        self.name = name;
-        self
-    }
-
-    pub fn s3_client(mut self, client: aws_sdk_s3::Client) -> Self {
-        self.s3_client = Some(client);
-        self
-    }
-
-    pub fn shutdown_rx(mut self, shutdown_rx: watch::Receiver<()>) -> Self {
-        self.shutdown_rx = Some(shutdown_rx);
-        self
-    }
-
-    pub fn encode_rx(mut self, encode_rx: crossbeam::channel::Receiver<ImageUploadRequest>) -> Self {
-        self.encode_rx = Some(encode_rx);
-        self
+        Ok(())
     }
 }

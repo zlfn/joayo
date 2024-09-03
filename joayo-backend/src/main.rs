@@ -34,11 +34,11 @@ async fn main() {
         .expect("Failed to connect database");
 
     info!("Database connection established.");
-    orm::migration::Migrator::up(&db, None).await.unwrap();
-    //Migrator::down(&db, None).await.unwrap();
+    orm::migration::Migrator::fresh(&db).await.unwrap();
+    //orm::migration::Migrator::up(&db, None).await.unwrap();
 
     let axum = task::spawn(api::axum_start(db.clone(), api_shutdown_rx, encode_tx));
-    let service = task::spawn(service::queue_executor(configs.clone(), service_shutdown_rx, encode_rx));
+    let service = task::spawn(service::queue_executor(db.clone(), configs.clone(), service_shutdown_rx, encode_rx));
     let shutdown = task::spawn(async {
         let mut sigterm = signal(SignalKind::terminate()).unwrap();
         let mut sigint = signal(SignalKind::interrupt()).unwrap();
@@ -54,7 +54,6 @@ async fn main() {
             break;
         };
     });
-
 
     shutdown.await.unwrap();
     service_shutdown_tx.send(()).unwrap();

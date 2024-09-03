@@ -8,8 +8,7 @@ use uuid::Uuid;
 
 #[derive(Debug)]
 pub enum ImageServiceError {
-    TranscodeFailed, //Server's fault
-    TranscodeUnavailable, //Client's fault
+    TranscodeFailed,
     TranscodeTimeout,
 }
 
@@ -75,7 +74,7 @@ impl FFmpegConverter {
             Ok(avif) => avif,
             Err(err) => {
                 warn!("Transcode unavailable: {}", err);
-                return Result::Err(ImageServiceError::TranscodeUnavailable);
+                return Result::Err(ImageServiceError::TranscodeFailed);
             }
         };
 

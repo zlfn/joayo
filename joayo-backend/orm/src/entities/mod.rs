@@ -2,6 +2,8 @@
 
 pub mod prelude;
 
+pub mod joayo;
 pub mod password_identity;
 pub mod session;
+pub mod upload_result;
 pub mod user;
